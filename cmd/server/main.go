@@ -40,13 +40,15 @@ func main() {
 	notificationHandler := handlers.NewNotificationHandler()
 	historyHandler := handlers.NewHistoryHandler()
 
-	// Health check endpoint
-	router.GET("/health", func(c *gin.Context) {
+	// Health check endpoint (supports both GET and HEAD requests)
+	healthHandler := func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status":  "ok",
 			"message": "Return By Death API is running",
 		})
-	})
+	}
+	router.GET("/health", healthHandler)
+	router.HEAD("/health", healthHandler)
 
 	// API routes group
 	api := router.Group("/api")
