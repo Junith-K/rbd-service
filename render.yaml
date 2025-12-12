@@ -2,7 +2,7 @@ services:
   - type: web
     name: rbd-service
     runtime: go
-    buildCommand: go build -o bin/server ./cmd/server
+    buildCommand: go build -tags netgo -ldflags '-s -w' -o bin/server ./cmd/server
     startCommand: ./bin/server
     envVars:
       - key: PORT
