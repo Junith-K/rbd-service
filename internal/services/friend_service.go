@@ -34,16 +34,16 @@ func (s *FriendService) GetFriends(ctx context.Context, userID string) ([]*model
 
 	var friends []*models.FriendInfo
 	for _, friendship := range friendships {
-		// Determine which user is the friend and get THEIR cooldown setting
-		// User sees "how often can I trigger this friend" = friend's cooldown setting for me
+		// Determine which user is the friend and check if THEY muted ME
+		// isMuted means: "Has this friend muted me? (Can I trigger them?)"
 		friendUserID := friendship.User2ID
-		isMuted := friendship.User1Muted // User1 muted User2
+		isMuted := friendship.User2Muted // User2 (friend) muted User1 (me)
 		cooldownMinutes := friendship.User2CooldownMinutes // User2's cooldown for User1 (how often User1 can trigger User2)
 		isUser1 := true
 		
 		if friendship.User2ID == userID {
 			friendUserID = friendship.User1ID
-			isMuted = friendship.User2Muted // User2 muted User1
+			isMuted = friendship.User1Muted // User1 (friend) muted User2 (me)
 			cooldownMinutes = friendship.User1CooldownMinutes // User1's cooldown for User2 (how often User2 can trigger User1)
 			isUser1 = false
 		}

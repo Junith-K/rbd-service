@@ -51,16 +51,16 @@ func (s *NotificationService) TriggerNotification(ctx context.Context, senderID,
 		return nil, errors.New("users are not friends")
 	}
 
-	// Check if SENDER has muted TARGET (sender can't trigger if they muted the target)
-	senderMutedTarget := false
-	if friendship.User1ID == senderID {
-		senderMutedTarget = friendship.User1Muted // Sender is User1, check User1Muted
+	// Check if TARGET has muted SENDER (target doesn't want to receive notifications from sender)
+	targetMutedSender := false
+	if friendship.User1ID == targetUserID {
+		targetMutedSender = friendship.User1Muted // Target is User1, User1 muted sender (User2)
 	} else {
-		senderMutedTarget = friendship.User2Muted // Sender is User2, check User2Muted
+		targetMutedSender = friendship.User2Muted // Target is User2, User2 muted sender (User1)
 	}
 	
-	if senderMutedTarget {
-		return nil, errors.New("you_muted_this_friend")
+	if targetMutedSender {
+		return nil, errors.New("friend_muted_you")
 	}
 
 	// Check if target has muted all
