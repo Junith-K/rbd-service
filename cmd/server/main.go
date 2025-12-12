@@ -58,7 +58,7 @@ func main() {
 		{
 			auth.POST("/register", authHandler.Register)
 			auth.POST("/login", authHandler.Login)
-			
+
 			// Protected routes
 			authProtected := auth.Group("")
 			authProtected.Use(middleware.AuthMiddleware())
