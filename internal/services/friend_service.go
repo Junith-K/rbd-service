@@ -37,17 +37,17 @@ func (s *FriendService) GetFriends(ctx context.Context, userID string) ([]*model
 		// Determine which user is the friend and check if THEY muted ME
 		// isMuted means: "Has this friend muted me? (Can I trigger them?)"
 		friendUserID := friendship.User2ID
-		isMuted := friendship.User2Muted // User2 (friend) muted User1 (me)
+		isMuted := friendship.User2Muted                   // User2 (friend) muted User1 (me)
 		cooldownMinutes := friendship.User2CooldownMinutes // User2's cooldown for User1 (how often User1 can trigger User2)
 		isUser1 := true
-		
+
 		if friendship.User2ID == userID {
 			friendUserID = friendship.User1ID
-			isMuted = friendship.User1Muted // User1 (friend) muted User2 (me)
+			isMuted = friendship.User1Muted                   // User1 (friend) muted User2 (me)
 			cooldownMinutes = friendship.User1CooldownMinutes // User1's cooldown for User2 (how often User2 can trigger User1)
 			isUser1 = false
 		}
-		
+
 		// Apply default cooldown for old or uninitialized friendships
 		// 0 = uninitialized (old friendships or missing field)
 		// Minimum valid cooldown is 1 minute
@@ -65,10 +65,10 @@ func (s *FriendService) GetFriends(ctx context.Context, userID string) ([]*model
 
 		// Check cooldown status - current user (userID) trying to trigger friend (friendUserID)
 		cooldown, err := s.cooldownRepo.CheckActiveCooldown(ctx, userID, friendUserID)
-		
+
 		cooldownRemaining := 0
 		canTrigger := true
-		
+
 		if err == nil && cooldown != nil {
 			// Calculate remaining seconds
 			now := time.Now()

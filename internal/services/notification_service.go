@@ -58,7 +58,7 @@ func (s *NotificationService) TriggerNotification(ctx context.Context, senderID,
 	} else {
 		targetMutedSender = friendship.User2Muted // Target is User2, User2 muted sender (User1)
 	}
-	
+
 	if targetMutedSender {
 		return nil, errors.New("friend_muted_you")
 	}
