@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"os"
 
@@ -21,19 +22,30 @@ var (
 func InitFirebase() error {
 	ctx := context.Background()
 
-	credentialsPath := os.Getenv("FIREBASE_CREDENTIALS_PATH")
-	if credentialsPath == "" {
-		credentialsPath = "./serviceAccountKey.json"
+	var opt option.ClientOption
+
+	// Check if credentials are provided as environment variable (for Render/cloud deployment)
+	if credsJSON := os.Getenv("FIREBASE_CREDENTIALS"); credsJSON != "" {
+		log.Println("📝 Using Firebase credentials from environment variable")
+		opt = option.WithCredentialsJSON([]byte(credsJSON))
+	} else {
+		// Fall back to credentials file (for local development)
+		credentialsPath := os.Getenv("FIREBASE_CREDENTIALS_PATH")
+		if credentialsPath == "" {
+			credentialsPath = "./serviceAccountKey.json"
+		}
+
+		// Check if credentials file exists
+		if _, err := os.Stat(credentialsPath); os.IsNotExist(err) {
+			log.Printf("⚠️  Firebase credentials not found at %s", credentialsPath)
+			log.Println("📝 Please set FIREBASE_CREDENTIALS env var or place serviceAccountKey.json")
+			return err
+		}
+
+		log.Printf("📝 Using Firebase credentials from file: %s", credentialsPath)
+		opt = option.WithCredentialsFile(credentialsPath)
 	}
 
-	// Check if credentials file exists
-	if _, err := os.Stat(credentialsPath); os.IsNotExist(err) {
-		log.Printf("⚠️  Firebase credentials not found at %s", credentialsPath)
-		log.Println("📝 Please download your Firebase service account key and place it at the specified path")
-		return err
-	}
-
-	opt := option.WithCredentialsFile(credentialsPath)
 	app, err := firebase.NewApp(ctx, nil, opt)
 	if err != nil {
 		log.Printf("Error initializing Firebase app: %v", err)
