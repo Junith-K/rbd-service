@@ -34,16 +34,19 @@ func (s *FriendService) GetFriends(ctx context.Context, userID string) ([]*model
 
 	var friends []*models.FriendInfo
 	for _, friendship := range friendships {
-		// Determine which user is the friend and check if THEY muted ME
-		// isMuted means: "Has this friend muted me? (Can I trigger them?)"
+		// Determine which user is the friend
+		// isMuted = "Have I muted this friend?" (red button on my side)
+		// isMutedBy = "Has this friend muted me?" (disables my trigger button)
 		friendUserID := friendship.User2ID
-		isMuted := friendship.User2Muted                   // User2 (friend) muted User1 (me)
+		iMutedThem := friendship.User1Muted                // User1 (me) muted User2 (friend) - red button
+		theyMutedMe := friendship.User2Muted               // User2 (friend) muted User1 (me) - trigger disabled
 		cooldownMinutes := friendship.User2CooldownMinutes // User2's cooldown for User1 (how often User1 can trigger User2)
 		isUser1 := true
 
 		if friendship.User2ID == userID {
 			friendUserID = friendship.User1ID
-			isMuted = friendship.User1Muted                   // User1 (friend) muted User2 (me)
+			iMutedThem = friendship.User2Muted                // User2 (me) muted User1 (friend) - red button
+			theyMutedMe = friendship.User1Muted               // User1 (friend) muted User2 (me) - trigger disabled
 			cooldownMinutes = friendship.User1CooldownMinutes // User1's cooldown for User2 (how often User2 can trigger User1)
 			isUser1 = false
 		}
@@ -82,7 +85,8 @@ func (s *FriendService) GetFriends(ctx context.Context, userID string) ([]*model
 		friends = append(friends, &models.FriendInfo{
 			UserID:            friendUserID,
 			Username:          user.Username,
-			IsMuted:           isMuted,
+			IsMuted:           iMutedThem,
+			IsMutedBy:         theyMutedMe,
 			CooldownRemaining: cooldownRemaining,
 			CanTrigger:        canTrigger,
 			CooldownMinutes:   cooldownMinutes,
