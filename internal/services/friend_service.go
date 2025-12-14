@@ -40,14 +40,14 @@ func (s *FriendService) GetFriends(ctx context.Context, userID string) ([]*model
 		friendUserID := friendship.User2ID
 		iMutedThem := friendship.User1Muted                // User1 (me) muted User2 (friend) - red button
 		theyMutedMe := friendship.User2Muted               // User2 (friend) muted User1 (me) - trigger disabled
-		cooldownMinutes := friendship.User2CooldownMinutes // User2's cooldown for User1 (how often User1 can trigger User2)
+		cooldownMinutes := friendship.User1CooldownMinutes // User1 (me) set this cooldown - how often User2 (friend) can trigger me
 		isUser1 := true
 
 		if friendship.User2ID == userID {
 			friendUserID = friendship.User1ID
 			iMutedThem = friendship.User2Muted                // User2 (me) muted User1 (friend) - red button
 			theyMutedMe = friendship.User1Muted               // User1 (friend) muted User2 (me) - trigger disabled
-			cooldownMinutes = friendship.User1CooldownMinutes // User1's cooldown for User2 (how often User2 can trigger User1)
+			cooldownMinutes = friendship.User2CooldownMinutes // User2 (me) set this cooldown - how often User1 (friend) can trigger me
 			isUser1 = false
 		}
 
@@ -294,15 +294,15 @@ func (s *FriendService) UpdateFriendCooldown(ctx context.Context, userID, friend
 	// Determine if current user is User1 or User2
 	isUser1 := existing.User1ID == userID
 
-	// Update the cooldown setting
+	// Update the cooldown setting in friendship record
+	// This sets "how often friendUserID can trigger userID"
 	if err := s.friendRepo.UpdateCooldown(ctx, existing.FriendshipID, isUser1, cooldownMinutes); err != nil {
 		return err
 	}
 
 	// Update any active cooldown to use the new duration
-	// Note: This updates the friendUserID->userID cooldown (friend triggering current user)
-	// We need to update userID->friendUserID cooldown (current user triggering friend)
-	_, _ = s.cooldownRepo.UpdateActiveCooldown(ctx, userID, friendUserID, cooldownMinutes)
+	// This updates friendUserID->userID cooldown (friend triggering current user)
+	_, _ = s.cooldownRepo.UpdateActiveCooldown(ctx, friendUserID, userID, cooldownMinutes)
 
 	return nil
 }

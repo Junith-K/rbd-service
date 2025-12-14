@@ -182,11 +182,12 @@ func (r *FriendRepository) UpdateMuteStatus(ctx context.Context, friendshipID st
 
 // UpdateCooldown updates the cooldown minutes for a friendship
 func (r *FriendRepository) UpdateCooldown(ctx context.Context, friendshipID string, isUser1 bool, cooldownMinutes int) error {
-	// When User1 sets cooldown for User2, update User2CooldownMinutes
-	// (User2's setting for how often User1 can trigger User2)
-	fieldName := "user2CooldownMinutes"
+	// User1CooldownMinutes = cooldown User1 sets = how often User2 can trigger User1
+	// User2CooldownMinutes = cooldown User2 sets = how often User1 can trigger User2
+	// When isUser1=true, User1 is setting their cooldown, so update user1CooldownMinutes
+	fieldName := "user1CooldownMinutes"
 	if !isUser1 {
-		fieldName = "user1CooldownMinutes"
+		fieldName = "user2CooldownMinutes"
 	}
 	_, err := r.client.Collection("friends").Doc(friendshipID).Update(ctx, []firestore.Update{
 		{Path: fieldName, Value: cooldownMinutes},
